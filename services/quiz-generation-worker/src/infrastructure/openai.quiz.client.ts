@@ -73,9 +73,11 @@ Rules:
 - difficultyLevel: convert 0-1 to 1-10 (e.g. 0.5 -> 5). Use integer.
 - totalPotentialMarks: integer, typically 1-10 per question.
 - tags: array of strings relevant to the topic.
-- For multiple-choice: include "options" with content, isCorrect, and optionally explanation.
-- For true-false: include "isTrue" boolean.
-- For short-answer: include "shortAnswers" with content, marks, and optionally explanation.
+- QUESTION TYPES (you MUST use a mix): Vary question types across the quiz. Include multiple-choice, true-false, and short-answer. Do not return only short-answer. For example: use multiple-choice for "choose the best answer" style, true-false for factual claims, short-answer only when a brief written answer is appropriate.
+- For multiple-choice: set type to "multiple-choice" and include "options" (array of { content, isCorrect, explanation? }). At least one option must have isCorrect: true.
+- For true-false: set type to "true-false" and include "isTrue" (boolean). Content should be a statement that is either true or false.
+- For short-answer: set type to "short-answer" and include "shortAnswers" with content, marks, and optionally explanation.
+- Every question MUST have "type" set to one of "multiple-choice" | "true-false" | "short-answer".
 - Include "explanation" on the question when it helps.
 - Set madeById to the userId when provided.
 - Return a single JSON object with key "questions" whose value is an array of question objects. No markdown or extra text.`;
@@ -86,7 +88,7 @@ Difficulty: ${difficultyLabel} (0-1 value: ${input.difficultyLevel}, use difficu
 Number of questions: ${input.numberOfQuestions}
 UserId (set as madeById on each question): ${input.userId}
 
-Generate exactly ${input.numberOfQuestions} questions. Return JSON: { "questions": [ ... ] }.`;
+Generate exactly ${input.numberOfQuestions} questions. Use a mix of types: multiple-choice, true-false, and short-answer. Return JSON: { "questions": [ ... ] }.`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90000);
