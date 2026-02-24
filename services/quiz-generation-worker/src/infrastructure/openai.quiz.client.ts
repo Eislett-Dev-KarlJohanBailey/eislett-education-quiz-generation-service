@@ -148,6 +148,7 @@ Generate exactly ${input.numberOfQuestions} questions. Use a mix of types: multi
     return questions.slice(0, input.numberOfQuestions).map((q: Record<string, unknown>, i: number) => {
       const difficultyLevel = Math.min(10, Math.max(1, Math.round(Number(q.difficultyLevel) || input.difficultyLevel * 10)));
       const question: Question = {
+        id: typeof q.id === "string" && q.id.length > 0 ? q.id : crypto.randomUUID(),
         createdAt: (q.createdAt as string) ? new Date(q.createdAt as string) : new Date(now),
         title: String(q.title ?? `Question ${i + 1}`),
         content: String(q.content ?? ""),
