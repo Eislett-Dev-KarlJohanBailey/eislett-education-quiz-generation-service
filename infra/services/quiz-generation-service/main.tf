@@ -96,12 +96,12 @@ resource "aws_dynamodb_table" "quiz_requests" {
   }
 }
 
-# SQS Queue for quiz generation jobs
+# SQS Queue for quiz generation jobs (visibility must be >= worker Lambda timeout so message is not redelivered while processing)
 resource "aws_sqs_queue" "quiz_generation" {
-  name                       = "${var.project_name}-${var.environment}-quiz-generation-queue"
-  visibility_timeout_seconds  = 120
+  name                        = "${var.project_name}-${var.environment}-quiz-generation-queue"
+  visibility_timeout_seconds  = 360
   message_retention_seconds   = 86400
-  receive_wait_time_seconds = 20
+  receive_wait_time_seconds   = 20
 
   tags = {
     Environment = var.environment
@@ -240,14 +240,14 @@ resource "aws_iam_role_policy" "worker_secrets_manager" {
   })
 }
 
-# Worker Lambda: SQS consumer, generates quiz, updates DynamoDB
+# Worker Lambda: SQS consumer, generates quiz via OpenAI, updates DynamoDB (long timeout for multi-question generation)
 module "quiz_generation_worker_lambda" {
   source = "../../modules/lambda"
 
   function_name = "quiz-generation-worker-${var.environment}"
   handler       = "dist/index.handler"
   runtime       = "nodejs20.x"
-  timeout       = 120
+  timeout       = 300
   filename      = abspath("${path.module}/../../../services/quiz-generation-worker/function.zip")
   iam_role_arn  = module.quiz_generation_worker_iam_role.role_arn
 
