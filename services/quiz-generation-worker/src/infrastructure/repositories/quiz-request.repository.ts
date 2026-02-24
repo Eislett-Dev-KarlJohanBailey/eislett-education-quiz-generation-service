@@ -43,7 +43,9 @@ export class QuizRequestRepository {
       ":status": status,
       ":updatedAt": now,
     };
-    if (questions !== undefined) exprValues[":questions"] = questions;
+    if (questions !== undefined) {
+      exprValues[":questions"] = JSON.parse(JSON.stringify(questions));
+    }
     await this.client.send(
       new UpdateCommand({
         TableName: this.tableName,

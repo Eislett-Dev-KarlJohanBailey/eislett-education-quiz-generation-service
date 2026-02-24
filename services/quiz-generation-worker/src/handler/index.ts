@@ -85,10 +85,24 @@ export const handler: SQSHandler = async (event: SQSEvent) => {
       } catch (reimburseErr) {
         console.error("Failed to send usage reimburse event:", reimburseErr);
       }
-      await repository.updateStatus(userId, id, "queued");
+      try {
+        await repository.updateStatus(userId, id, "failed");
+      } catch (updateErr) {
+        console.error("Failed to set status to failed:", updateErr);
+      }
       throw err;
     }
 
-    await repository.updateStatus(userId, id, "completed", questions);
+    try {
+      await repository.updateStatus(userId, id, "completed", questions);
+    } catch (err) {
+      console.error("Failed to save completed quiz:", err);
+      try {
+        await repository.updateStatus(userId, id, "failed");
+      } catch (updateErr) {
+        console.error("Failed to set status to failed:", updateErr);
+      }
+      throw err;
+    }
   }
 };
