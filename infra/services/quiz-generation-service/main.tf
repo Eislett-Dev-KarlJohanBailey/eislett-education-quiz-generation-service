@@ -44,9 +44,10 @@ data "terraform_remote_state" "access_service" {
 }
 
 # Derive usage event queue ARN from URL for IAM (https://sqs.{region}.amazonaws.com/{account_id}/{queue_name} -> arn:aws:sqs:{region}:{account_id}:{queue_name})
+# regexall with unnamed capture groups returns list of lists with only the groups: [0]=region, [1]=account, [2]=queue name
 locals {
   usage_event_queue_parts = regexall("^https://sqs\\.([^.]+)\\.amazonaws\\.com/([0-9]+)/(.+)$", var.usage_event_queue_url)[0]
-  usage_event_queue_arn   = "arn:aws:sqs:${local.usage_event_queue_parts[1]}:${local.usage_event_queue_parts[2]}:${local.usage_event_queue_parts[3]}"
+  usage_event_queue_arn   = "arn:aws:sqs:${local.usage_event_queue_parts[0]}:${local.usage_event_queue_parts[1]}:${local.usage_event_queue_parts[2]}"
 }
 
 data "aws_caller_identity" "current" {}
@@ -100,7 +101,7 @@ resource "aws_sqs_queue" "quiz_generation" {
   name                       = "${var.project_name}-${var.environment}-quiz-generation-queue"
   visibility_timeout_seconds  = 120
   message_retention_seconds   = 86400
-  receive_wait_timeout_seconds = 20
+  receive_wait_time_seconds = 20
 
   tags = {
     Environment = var.environment
