@@ -37,9 +37,9 @@ data "terraform_remote_state" "access_service" {
   backend = "s3"
 
   config = {
-    bucket = var.state_bucket_name
+    bucket = var.access_service_state_bucket != "" ? var.access_service_state_bucket : var.state_bucket_name
     key    = var.access_service_state_key
-    region = var.state_region
+    region = var.access_service_state_region != "" ? var.access_service_state_region : var.state_region
   }
 }
 

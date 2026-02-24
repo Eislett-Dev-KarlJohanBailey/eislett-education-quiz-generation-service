@@ -179,7 +179,7 @@ Each item in `questions` follows the same schema as `question.entity.ts` (Eislet
 
 - **Location:** `infra/services/quiz-generation-service/`
 - **Assumes:** Remote state for foundation (API Gateway id, root id) and for **access-service** (entitlements table name/ARN). You provide the usage-event queue **URL** directly via `usage_event_queue_url`. Secrets: `openai-api-key`, `jwt-access-token-secret` (same naming as conversation service).
-- **Variables:** In addition to `state_bucket_name`, `state_region`, `state_bucket_key`, set `access_service_state_key` (S3 key of access-service Terraform state) and `usage_event_queue_url` (e.g. `https://sqs.us-east-1.amazonaws.com/123456789012/project-env-usage-event-queue`). The queue ARN for IAM is derived from the URL.
+- **Variables:** Required: `state_bucket_name`, `state_region`, `state_bucket_key`, `access_service_state_key` (S3 key of access-service state), `usage_event_queue_url`. Optional: `access_service_state_bucket` and `access_service_state_region` — if set, access-service state is read from this bucket/region; if empty, `state_bucket_name` and `state_region` are used.
 - **Resources:** DynamoDB table, SQS queue, API Lambda (with API Gateway link for path `quiz-generation`), Worker Lambda (SQS event source mapping), IAM roles and policies.
 
 Apply from the service directory:

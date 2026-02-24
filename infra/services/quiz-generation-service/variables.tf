@@ -21,9 +21,21 @@ variable "project_name" {
   default     = "eislett-education"
 }
 
+variable "access_service_state_bucket" {
+  type        = string
+  default     = ""
+  description = "S3 bucket for access-service Terraform state. Defaults to state_bucket_name when empty."
+}
+
 variable "access_service_state_key" {
   type        = string
   description = "S3 key for access-service Terraform state (for entitlements table name/ARN)"
+}
+
+variable "access_service_state_region" {
+  type        = string
+  default     = ""
+  description = "AWS region for access-service state bucket. Defaults to state_region when empty."
 }
 
 variable "usage_event_queue_url" {
