@@ -11,7 +11,7 @@ Quiz generation service: request a quiz (queued via SQS), a worker generates it 
 
 Quiz ids are generated at request time (e.g. `quiz-<timestamp>-<random>`) so clients can poll `GET /quiz-generation/:id` immediately after `POST`.
 
-**Entitlement and usage:** Before accepting a request, the API checks the user’s **feature-quiz-generation** entitlement in the shared entitlements table (same as access-service): user must have an active entitlement with usage tracking and at least 1 remaining (used &lt; limit). If not, the API returns **402 Payment Required**. When a generation **starts**, the worker sends a **consume 1** message to the **usage-event** SQS queue (so 1 is deducted from the user’s usage). If generation **fails**, the worker sends a **reimburse** message (amount -1) to the same queue so the usage is restored.
+**Entitlement and usage:** Before accepting a request, the API checks the user’s **quiz_generation** entitlement in the shared entitlements table (same as access-service): user must have an active entitlement with usage tracking and at least 1 remaining (used &lt; limit). If not, the API returns **402 Payment Required**. When a generation **starts**, the worker sends a **consume 1** message to the **usage-event** SQS queue (so 1 is deducted from the user’s usage). If generation **fails**, the worker sends a **reimburse** message (amount -1) to the same queue so the usage is restored.
 
 ## API Endpoints
 
@@ -56,7 +56,7 @@ Creates a quiz generation request, stores it in DynamoDB with status `queued`, s
 
 - `400` – Validation (e.g. missing `instruction`, `difficultyLevel` not in 0–1).
 - `401` – Missing or invalid JWT.
-- `402` – **Payment Required**: User has no access to `feature-quiz-generation` or no remaining usage (limit reached). Check entitlements and usage in the database.
+- `402` – **Payment Required**: User has no access to `quiz_generation` or no remaining usage (limit reached). Check entitlements and usage in the database.
 
 ---
 

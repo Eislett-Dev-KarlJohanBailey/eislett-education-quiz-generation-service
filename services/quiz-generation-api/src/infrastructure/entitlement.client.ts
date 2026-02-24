@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 
-export const FEATURE_QUIZ_GENERATION_KEY = "feature-quiz-generation";
+export const FEATURE_QUIZ_GENERATION_KEY = "quiz_generation";
 
 export interface EntitlementCheckResult {
   hasAccess: boolean;

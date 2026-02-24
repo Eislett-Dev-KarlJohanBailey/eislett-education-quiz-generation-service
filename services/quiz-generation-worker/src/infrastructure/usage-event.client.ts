@@ -1,6 +1,6 @@
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 
-export const FEATURE_QUIZ_GENERATION_KEY = "feature-quiz-generation";
+export const FEATURE_QUIZ_GENERATION_KEY = "quiz_generation";
 
 export interface UsageEventPayload {
   userId: string;
