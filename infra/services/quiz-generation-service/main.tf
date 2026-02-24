@@ -235,7 +235,7 @@ resource "aws_iam_role_policy" "worker_secrets_manager" {
       Effect   = "Allow"
       Action   = ["secretsmanager:GetSecretValue"]
       Resource = data.aws_secretsmanager_secret.openai_api_key.arn
-    }])
+    }]
   })
 }
 
