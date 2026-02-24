@@ -139,7 +139,7 @@ Returns the quiz request for the given `id` for the authenticated user. Use this
       "totalPotentialMarks": 5,
       "difficultyLevel": 5,
       "subTopics": ["solving for x"],
-      "type": "multiple-choice",
+      "type": "multiple_choice",
       "options": [
         { "content": "x = 4", "isCorrect": true, "explanation": "2(4)+3=11" },
         { "content": "x = 5", "isCorrect": false }
@@ -171,7 +171,7 @@ Each item in `questions` follows the same schema as `question.entity.ts` (Eislet
 - **Required:** `title`, `content`, `tags`, `totalPotentialMarks`, `difficultyLevel`
 - **Optional:** `description`, `subTopics`, `explanation`, `mediaUrl`, `mediaAlt`, `hidden`, `vectorStoreFileId`, `vectorStoreProvider`, `type`, `options`, `isTrue`, `shortAnswers`, `madeById`, `userType`
 
-`options` (multiple-choice), `isTrue` (true/false), and `shortAnswers` (short answer) are used depending on `type`.
+`options` (multiple_choice), `isTrue` (true_or_false), and `shortAnswers` (short_answer) are used depending on `type`.
 
 ---
 

@@ -61,10 +61,10 @@ interface Question {
   difficultyLevel: number;  // 1-10 scale (map from 0-1: 1-10)
   subTopics?: string[];
   explanation?: string;
-  type?: "multiple-choice" | "true-false" | "short-answer";
-  options?: MultipleChoiceOption[];   // for multiple-choice
-  isTrue?: boolean;                   // for true-false
-  shortAnswers?: SimpleShortAnswersOption[];  // for short-answer
+  type?: "multiple_choice" | "true_or_false" | "short_answer";
+  options?: MultipleChoiceOption[];   // for multiple_choice
+  isTrue?: boolean;                   // for true_or_false
+  shortAnswers?: SimpleShortAnswersOption[];  // for short_answer
   madeById?: string;
   userType?: "teacher" | "admin" | "student";
 }
@@ -74,11 +74,11 @@ Rules:
 - totalPotentialMarks: integer, typically 1-10 per question.
 - tags: array of strings relevant to the topic.
 - SYMBOLS: Use proper mathematical and scientific symbols in all question content, options, and explanations. Do not use ASCII substitutes. Use: × for multiplication (not *), ÷ for division (not /), ± for plus-minus, ≠ for not equal, ≤ and ≥ for less/greater than or equal, ≈ for approximately, √ for square root, π for pi, ∞ for infinity, ° for degrees, ² and ³ for squared/cubed where appropriate, proper fractions (e.g. ½) when it improves clarity, and standard symbols for sets (∈, ∉, ∪, ∩), logic (∧, ∨, ¬), arrows (→, ⇒, ↔), and Greek letters (α, β, θ, Σ, Δ) when relevant to the topic. Apply this to any subject that uses notation (math, science, etc.).
-- QUESTION TYPES (you MUST use a mix): Vary question types across the quiz. Include multiple-choice, true-false, and short-answer. Do not return only short-answer. For example: use multiple-choice for "choose the best answer" style, true-false for factual claims, short-answer only when a brief written answer is appropriate.
-- For multiple-choice: set type to "multiple-choice" and include "options" (array of { content, isCorrect, explanation? }). At least one option must have isCorrect: true.
-- For true-false: set type to "true-false" and include "isTrue" (boolean). Content should be a statement that is either true or false.
-- For short-answer: set type to "short-answer" and include "shortAnswers" with content, marks, and optionally explanation.
-- Every question MUST have "type" set to one of "multiple-choice" | "true-false" | "short-answer".
+- QUESTION TYPES (you MUST use a mix): Vary question types across the quiz. Include multiple_choice, true_or_false, and short_answer. Do not return only short_answer. For example: use multiple_choice for "choose the best answer" style, true_or_false for factual claims, short_answer only when a brief written answer is appropriate.
+- For multiple_choice: set type to "multiple_choice" and include "options" (array of { content, isCorrect, explanation? }). At least one option must have isCorrect: true.
+- For true_or_false: set type to "true_or_false" and include "isTrue" (boolean). Content should be a statement that is either true or false.
+- For short_answer: set type to "short_answer" and include "shortAnswers" with content, marks, and optionally explanation.
+- Every question MUST have "type" set to one of "multiple_choice" | "true_or_false" | "short_answer".
 - Include "explanation" on the question when it helps.
 - Set madeById to the userId when provided.
 - Return a single JSON object with key "questions" whose value is an array of question objects. No markdown or extra text.`;
@@ -89,7 +89,7 @@ Difficulty: ${difficultyLabel} (0-1 value: ${input.difficultyLevel}, use difficu
 Number of questions: ${input.numberOfQuestions}
 UserId (set as madeById on each question): ${input.userId}
 
-Generate exactly ${input.numberOfQuestions} questions. Use a mix of types: multiple-choice, true-false, and short-answer. Use proper symbols (× ÷ ≤ ≥ √ π etc.) in all text, not ASCII substitutes. Return JSON: { "questions": [ ... ] }.`;
+Generate exactly ${input.numberOfQuestions} questions. Use a mix of types: multiple_choice, true_or_false, and short_answer. Use proper symbols (× ÷ ≤ ≥ √ π etc.) in all text, not ASCII substitutes. Return JSON: { "questions": [ ... ] }.`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90000);
