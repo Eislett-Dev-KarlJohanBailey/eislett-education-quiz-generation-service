@@ -24,44 +24,17 @@ jobs:
           node-version: 20
           cache: "npm"
 
-      - name: Build and package quiz-generation-api
-        run: |
-          cd services/quiz-generation-api
-          npm ci
-          npm run package
-          ls -la function.zip 2>/dev/null || ls -la ../function.zip 2>/dev/null || true
+      - name: Install deps
+        run: npm install
 
-      - name: Build and package quiz-generation-worker
-        run: |
-          cd services/quiz-generation-worker
-          npm ci
-          npm run package
-          ls -la function.zip 2>/dev/null || true
+      - name: Build
+        run: npx turbo run build --filter=@services/quiz-generation-api --filter=@services/quiz-generation-worker
 
-      - name: Verify function.zips exist
-        run: |
-          if [ ! -f "services/quiz-generation-api/function.zip" ]; then
-            echo "Error: function.zip not found at services/quiz-generation-api/function.zip"
-            exit 1
-          fi
-          if [ ! -f "services/quiz-generation-worker/function.zip" ]; then
-            echo "Error: function.zip not found at services/quiz-generation-worker/function.zip"
-            exit 1
-          fi
-          echo "✓ Both function.zips created"
+      - name: Package
+        run: npx turbo run package --filter=@services/quiz-generation-api --filter=@services/quiz-generation-worker
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/dev')
-    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'development' }}
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Deploy (dry run)
+        run: npx turbo run deploy --filter=@services/quiz-generation-api --filter=@services/quiz-generation-worker
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -91,12 +64,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Build and package (for deploy)
-        run: |
-          cd services/quiz-generation-api && npm ci && npm run package && cd ../..
-          cd services/quiz-generation-worker && npm ci && npm run package && cd ../..
-
       - name: Bootstrap Terraform backend
+        if: github.event_name != 'pull_request'
         run: |
           PROJECT_NAME="${{ steps.project.outputs.project_name }}"
           export BUCKET="${PROJECT_NAME}-${{ steps.env.outputs.environment }}-quiz-generation-service-state"
@@ -106,6 +75,7 @@ jobs:
           bash bin/bootstrap_backend.sh
 
       - name: Deploy quiz-generation-service
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/dev')
         env:
           TF_STATE_BUCKET_NAME: ${{ secrets.TF_STATE_BUCKET_NAME }}
           TF_STATE_REGION: ${{ secrets.TF_STATE_REGION }}
@@ -118,6 +88,15 @@ jobs:
           PROJECT_NAME="${{ steps.project.outputs.project_name }}"
           SERVICE="quiz-generation-service"
           ENV="${{ steps.env.outputs.environment }}"
+
+          if [ ! -f "services/quiz-generation-api/function.zip" ]; then
+            echo "Error: function.zip not found at services/quiz-generation-api/function.zip"
+            exit 1
+          fi
+          if [ ! -f "services/quiz-generation-worker/function.zip" ]; then
+            echo "Error: function.zip not found at services/quiz-generation-worker/function.zip"
+            exit 1
+          fi
 
           terraform -chdir=infra/services/$SERVICE init \
             -backend-config="bucket=${PROJECT_NAME}-${ENV}-${SERVICE}-state" \

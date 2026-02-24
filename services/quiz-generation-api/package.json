@@ -8,7 +8,8 @@
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
-    "package": "npm run build && esbuild src/handler/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js && cd dist && zip -r ../function.zip index.js"
+    "package": "npm run build && esbuild src/handler/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js && cd dist && zip -r ../function.zip index.js",
+    "deploy": "echo Deploying quiz-generation-api..."
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.975.0",
