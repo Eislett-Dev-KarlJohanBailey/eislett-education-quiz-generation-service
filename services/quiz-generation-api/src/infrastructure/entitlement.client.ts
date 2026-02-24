@@ -38,8 +38,8 @@ export class EntitlementClient {
       return { hasAccess: false, canConsumeOne: false };
     }
 
-    const status = item.status as string | undefined;
-    if (status !== "ACTIVE") {
+    const status = (item.status as string | undefined)?.toLowerCase();
+    if (status !== "active") {
       return { hasAccess: false, canConsumeOne: false };
     }
 
