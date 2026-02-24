@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [main, development, dev]
+  pull_request:
+    branches: [main, development, dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'development' }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Build and package quiz-generation-api
+        run: |
+          cd services/quiz-generation-api
+          npm ci
+          npm run package
+          ls -la function.zip 2>/dev/null || ls -la ../function.zip 2>/dev/null || true
+
+      - name: Build and package quiz-generation-worker
+        run: |
+          cd services/quiz-generation-worker
+          npm ci
+          npm run package
+          ls -la function.zip 2>/dev/null || true
+
+      - name: Verify function.zips exist
+        run: |
+          if [ ! -f "services/quiz-generation-api/function.zip" ]; then
+            echo "Error: function.zip not found at services/quiz-generation-api/function.zip"
+            exit 1
+          fi
+          if [ ! -f "services/quiz-generation-worker/function.zip" ]; then
+            echo "Error: function.zip not found at services/quiz-generation-worker/function.zip"
+            exit 1
+          fi
+          echo "✓ Both function.zips created"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/dev')
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'development' }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set project name
+        id: project
+        run: |
+          PROJECT_NAME="${{ vars.PROJECT_NAME || 'eislett-education' }}"
+          echo "project_name=${PROJECT_NAME}" >> $GITHUB_OUTPUT
+          echo "Using project name: ${PROJECT_NAME}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Build and package (for deploy)
+        run: |
+          cd services/quiz-generation-api && npm ci && npm run package && cd ../..
+          cd services/quiz-generation-worker && npm ci && npm run package && cd ../..
+
+      - name: Bootstrap Terraform backend
+        run: |
+          PROJECT_NAME="${{ steps.project.outputs.project_name }}"
+          export BUCKET="${PROJECT_NAME}-${{ steps.env.outputs.environment }}-quiz-generation-service-state"
+          export TABLE="${PROJECT_NAME}-${{ steps.env.outputs.environment }}-quiz-generation-service-state-locking"
+          export AWS_REGION="us-east-1"
+          chmod +x bin/bootstrap_backend.sh
+          bash bin/bootstrap_backend.sh
+
+      - name: Deploy quiz-generation-service
+        env:
+          TF_STATE_BUCKET_NAME: ${{ secrets.TF_STATE_BUCKET_NAME }}
+          TF_STATE_REGION: ${{ secrets.TF_STATE_REGION }}
+          TF_STATE_BUCKET_KEY: ${{ secrets.TF_STATE_BUCKET_KEY }}
+          ACCESS_SERVICE_STATE_KEY: ${{ secrets.ACCESS_SERVICE_STATE_KEY }}
+          USAGE_EVENT_QUEUE_URL: ${{ secrets.USAGE_EVENT_QUEUE_URL }}
+          ACCESS_SERVICE_STATE_BUCKET: ${{ secrets.ACCESS_SERVICE_STATE_BUCKET }}
+          ACCESS_SERVICE_STATE_REGION: ${{ secrets.ACCESS_SERVICE_STATE_REGION }}
+        run: |
+          PROJECT_NAME="${{ steps.project.outputs.project_name }}"
+          SERVICE="quiz-generation-service"
+          ENV="${{ steps.env.outputs.environment }}"
+
+          terraform -chdir=infra/services/$SERVICE init \
+            -backend-config="bucket=${PROJECT_NAME}-${ENV}-${SERVICE}-state" \
+            -backend-config="key=tf-infra/${ENV}.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=${PROJECT_NAME}-${ENV}-${SERVICE}-state-locking" \
+            -backend-config="encrypt=true"
+
+          terraform -chdir=infra/services/$SERVICE apply -auto-approve \
+            -var="project_name=${PROJECT_NAME}" \
+            -var="environment=${ENV}" \
+            -var="state_bucket_name=${TF_STATE_BUCKET_NAME}" \
+            -var="state_region=${TF_STATE_REGION}" \
+            -var="state_bucket_key=${TF_STATE_BUCKET_KEY}" \
+            -var="access_service_state_key=${ACCESS_SERVICE_STATE_KEY}" \
+            -var="access_service_state_bucket=${ACCESS_SERVICE_STATE_BUCKET}" \
+            -var="access_service_state_region=${ACCESS_SERVICE_STATE_REGION}" \
+            -var="usage_event_queue_url=${USAGE_EVENT_QUEUE_URL}"

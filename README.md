@@ -175,6 +175,31 @@ Each item in `questions` follows the same schema as `question.entity.ts` (Eislet
 
 ---
 
+## CI (GitHub Actions)
+
+A workflow in `.github/workflows/ci.yml` runs on push/PR to `main`, `development`, and `dev`:
+
+- **Build job:** Installs dependencies, builds and packages both `quiz-generation-api` and `quiz-generation-worker` (produces `function.zip` for each).
+- **Deploy job:** Runs only on push (not PR). Bootstraps the Terraform backend (S3 + DynamoDB lock table for `quiz-generation-service`), then runs `terraform apply` for `infra/services/quiz-generation-service`.
+
+**Required GitHub secrets** (repo or environment):
+
+| Secret | Purpose |
+|--------|--------|
+| `AWS_ACCESS_KEY_ID` | AWS credentials for Terraform and backend bootstrap |
+| `AWS_SECRET_ACCESS_KEY` | AWS credentials |
+| `TF_STATE_BUCKET_NAME` | Foundation/state S3 bucket name |
+| `TF_STATE_REGION` | State bucket region (e.g. `us-east-1`) |
+| `TF_STATE_BUCKET_KEY` | S3 key for foundation state file |
+| `ACCESS_SERVICE_STATE_KEY` | S3 key for access-service state (entitlements table) |
+| `USAGE_EVENT_QUEUE_URL` | Usage-event SQS queue URL |
+
+**Optional:** `ACCESS_SERVICE_STATE_BUCKET`, `ACCESS_SERVICE_STATE_REGION` — if the access-service state lives in a different bucket/region.
+
+**Optional variable:** `vars.PROJECT_NAME` (default `eislett-education`).
+
+---
+
 ## Infra (Terraform)
 
 - **Location:** `infra/services/quiz-generation-service/`
