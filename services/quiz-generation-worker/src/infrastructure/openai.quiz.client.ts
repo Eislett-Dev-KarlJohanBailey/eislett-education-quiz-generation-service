@@ -73,6 +73,7 @@ Rules:
 - difficultyLevel: convert 0-1 to 1-10 (e.g. 0.5 -> 5). Use integer.
 - totalPotentialMarks: integer, typically 1-10 per question.
 - tags: array of strings relevant to the topic.
+- SYMBOLS: Use proper mathematical and scientific symbols in all question content, options, and explanations. Do not use ASCII substitutes. Use: × for multiplication (not *), ÷ for division (not /), ± for plus-minus, ≠ for not equal, ≤ and ≥ for less/greater than or equal, ≈ for approximately, √ for square root, π for pi, ∞ for infinity, ° for degrees, ² and ³ for squared/cubed where appropriate, proper fractions (e.g. ½) when it improves clarity, and standard symbols for sets (∈, ∉, ∪, ∩), logic (∧, ∨, ¬), arrows (→, ⇒, ↔), and Greek letters (α, β, θ, Σ, Δ) when relevant to the topic. Apply this to any subject that uses notation (math, science, etc.).
 - QUESTION TYPES (you MUST use a mix): Vary question types across the quiz. Include multiple-choice, true-false, and short-answer. Do not return only short-answer. For example: use multiple-choice for "choose the best answer" style, true-false for factual claims, short-answer only when a brief written answer is appropriate.
 - For multiple-choice: set type to "multiple-choice" and include "options" (array of { content, isCorrect, explanation? }). At least one option must have isCorrect: true.
 - For true-false: set type to "true-false" and include "isTrue" (boolean). Content should be a statement that is either true or false.
@@ -88,7 +89,7 @@ Difficulty: ${difficultyLabel} (0-1 value: ${input.difficultyLevel}, use difficu
 Number of questions: ${input.numberOfQuestions}
 UserId (set as madeById on each question): ${input.userId}
 
-Generate exactly ${input.numberOfQuestions} questions. Use a mix of types: multiple-choice, true-false, and short-answer. Return JSON: { "questions": [ ... ] }.`;
+Generate exactly ${input.numberOfQuestions} questions. Use a mix of types: multiple-choice, true-false, and short-answer. Use proper symbols (× ÷ ≤ ≥ √ π etc.) in all text, not ASCII substitutes. Return JSON: { "questions": [ ... ] }.`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90000);
