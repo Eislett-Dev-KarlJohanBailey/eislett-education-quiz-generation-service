@@ -5,6 +5,7 @@ export type QuizRequestStatus = "queued" | "processing" | "completed" | "failed"
 export interface QuizRequestRecord {
   id: string;
   userId: string;
+  title: string;
   instruction: string;
   subtopics: string[];
   difficultyLevel: number;

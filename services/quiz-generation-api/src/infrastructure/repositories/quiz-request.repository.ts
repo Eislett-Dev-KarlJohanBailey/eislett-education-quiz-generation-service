@@ -40,6 +40,7 @@ export class QuizRequestRepository {
           SK: `QUIZ#${request.id}`,
           id: request.id,
           userId: request.userId,
+          title: request.title,
           instruction: request.instruction,
           subtopics: request.subtopics,
           difficultyLevel: request.difficultyLevel,
@@ -138,6 +139,7 @@ export class QuizRequestRepository {
     return {
       id: item.id as string,
       userId: item.userId as string,
+      title: typeof item.title === "string" ? item.title : (item.instruction as string)?.slice(0, 80) || "Quiz",
       instruction: item.instruction as string,
       subtopics: (item.subtopics as string[]) || [],
       difficultyLevel: (item.difficultyLevel as number) ?? 0,

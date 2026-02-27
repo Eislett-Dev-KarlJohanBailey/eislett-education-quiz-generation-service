@@ -15,10 +15,13 @@ export class RequestQuizUseCase {
   async execute(input: RequestQuizInput): Promise<{ id: string; status: string }> {
     const id = `quiz-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const now = new Date().toISOString();
+    const title =
+      (typeof input.title === "string" && input.title.trim()) || input.instruction.trim().slice(0, 80) || "Quiz";
 
     await this.repository.save({
       id,
       userId: input.userId,
+      title,
       instruction: input.instruction,
       subtopics: input.subtopics ?? [],
       difficultyLevel: Math.min(1, Math.max(0, Number(input.difficultyLevel))),

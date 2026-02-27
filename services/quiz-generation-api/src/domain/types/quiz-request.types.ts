@@ -7,11 +7,13 @@ export interface QuizGenerationRequestInput {
   subtopics: string[];
   difficultyLevel: number; // 0-1
   numberOfQuestions: number;
+  title?: string;
 }
 
 export interface QuizRequest {
   id: string;
   userId: string;
+  title: string;
   instruction: string;
   subtopics: string[];
   difficultyLevel: number;

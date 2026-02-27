@@ -7,6 +7,7 @@ function parseBody(body: unknown): {
   subtopics: string[];
   difficultyLevel: number;
   numberOfQuestions: number;
+  title?: string;
 } {
   const b = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
   const instruction = typeof b.instruction === "string" ? b.instruction : "";
@@ -18,6 +19,7 @@ function parseBody(body: unknown): {
     : [];
   const difficultyLevel = Number(b.difficultyLevel);
   const numberOfQuestions = Number(b.numberOfQuestions) || 5;
+  const title = typeof b.title === "string" ? b.title.trim() || undefined : undefined;
   if (Number.isNaN(difficultyLevel) || difficultyLevel < 0 || difficultyLevel > 1) {
     throw new Error("difficultyLevel must be a number between 0 and 1");
   }
@@ -26,6 +28,7 @@ function parseBody(body: unknown): {
     subtopics,
     difficultyLevel: Math.min(1, Math.max(0, difficultyLevel)),
     numberOfQuestions: Math.max(1, Math.min(50, Math.round(numberOfQuestions))),
+    title,
   };
 }
 
@@ -52,13 +55,14 @@ export class RequestQuizController {
       (err as Error & { name: string }).name = "UsageExhaustedError";
       throw err;
     }
-    const { instruction, subtopics, difficultyLevel, numberOfQuestions } = parseBody(req.body);
+    const { instruction, subtopics, difficultyLevel, numberOfQuestions, title } = parseBody(req.body);
     return this.useCase.execute({
       userId: user.id,
       instruction,
       subtopics,
       difficultyLevel,
       numberOfQuestions,
+      title,
     });
   };
 }
