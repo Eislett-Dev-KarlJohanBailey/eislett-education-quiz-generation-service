@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { parseRequest } from "./parse-request";
 import { routes } from "./routes";
-import { response, errorResponse } from "./response";
+import { response, errorResponse, corsHeaders } from "./response";
 import type { RequestContext } from "./types";
 import { requireUser } from "../../infrastructure/auth";
 
@@ -44,10 +44,12 @@ function findRouteHandler(
 
 export async function apiHandler(event: APIGatewayProxyEvent) {
   try {
-    const req = parseRequest(event);
-    if (req.method === "OPTIONS") {
-      return response(200, {});
+    // CORS preflight: respond to OPTIONS with 204 and CORS headers
+    if (event.httpMethod === "OPTIONS") {
+      return { statusCode: 204, headers: { ...corsHeaders }, body: "" };
     }
+
+    const req = parseRequest(event);
     const actualPath = event.path || req.path;
     const normalizedPath = normalizePath(actualPath);
     const pathParams: Record<string, string> = { ...req.pathParams };
