@@ -9,7 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'development' }}
+    # Secrets from GitHub env: production (main) or development (dev/development); resource naming uses prod/dev
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
     permissions:
       id-token: write
       contents: read
